@@ -38,3 +38,30 @@ export function AlponaBorder({ className }: { className?: string }) {
     </svg>
   );
 }
+
+/** A toran: swags of marigold strung across the top of a doorway, with mango leaves where they meet. */
+export function Toran({ className }: { className?: string }) {
+  const flowers = Array.from({ length: 11 }, (_, i) => {
+    const t = i / 10;
+    return { x: 6 + t * 108, y: 8 + Math.round(Math.sin(t * Math.PI) * 26 * 10) / 10, i };
+  });
+  return (
+    <svg className={className} aria-hidden height="64">
+      <defs>
+        <pattern id="toran-swag" width="120" height="64" patternUnits="userSpaceOnUse">
+          {flowers.map(({ x, y, i }) => (
+            <g key={i}>
+              <circle cx={x} cy={y} r="7" fill={i % 2 ? "#F7C600" : "#F28C0F"} />
+              <circle cx={x} cy={y} r="2.4" fill={i % 2 ? "#E08A00" : "#C25E00"} />
+            </g>
+          ))}
+          <path d="M0 6 C-4 22 -2 34 0 44 C2 34 4 22 0 6 Z" fill="#3E7B34" />
+          <path d="M120 6 C116 22 118 34 120 44 C122 34 124 22 120 6 Z" fill="#3E7B34" />
+          <circle cx="0" cy="6" r="5" fill="#C8102E" />
+          <circle cx="120" cy="6" r="5" fill="#C8102E" />
+        </pattern>
+      </defs>
+      <rect width="100%" height="64" fill="url(#toran-swag)" />
+    </svg>
+  );
+}

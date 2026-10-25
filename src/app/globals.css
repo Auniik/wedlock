@@ -309,37 +309,86 @@ body {
   border-radius: 1.25rem 1.25rem 0 0;
   background: repeating-linear-gradient(90deg, var(--color-alta) 0 14px, var(--color-zari) 14px 18px);
 }
-.event-card { --accent: var(--color-alta); background: radial-gradient(circle at 15% 20%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 55%), #f7efe0; color: var(--color-ink); }
+.ceremonies-bg {
+  background:
+    repeating-linear-gradient(45deg, rgba(226, 177, 60, 0.045) 0 1px, transparent 1px 22px),
+    repeating-linear-gradient(-45deg, rgba(226, 177, 60, 0.045) 0 1px, transparent 1px 22px),
+    radial-gradient(ellipse at 50% 0%, #7a1a24, #3d0b14 75%);
+  color: var(--color-shola);
+}
+.toran { flex: none; filter: drop-shadow(0 6px 6px rgba(0, 0, 0, 0.35)); }
+.ceremony-row {
+  display: flex;
+  gap: 1.25rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding: 0.5rem 14vw 1rem;
+  scrollbar-width: none;
+}
+.ceremony-row::-webkit-scrollbar { display: none; }
+.ceremony { --accent: var(--color-alta); flex: 0 0 72vw; scroll-snap-align: center; }
+@media (min-width: 768px) {
+  .ceremony-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2.5rem; overflow: visible; padding: 0 3rem; }
+  /* outside the phone carousel these must not become snap points for the whole page */
+  .ceremony { scroll-snap-align: none; }
+}
 .event-holud { --accent: #d99a00; }
 .event-boubhat { --accent: var(--color-kola); }
 .event-aashirbaad { --accent: #b0566b; }
-.event-art {
-  display: block;
-  width: 100%;
-  height: auto;
-  border-radius: 1.25rem;
-  border: 6px solid #fff;
-  box-shadow: 0 24px 50px -24px rgba(42, 15, 18, 0.55);
-  rotate: -1.2deg;
+.doorway {
+  position: relative;
+  margin: 0 auto;
+  width: min(100%, 17rem);
 }
-.event-card:nth-of-type(even) .event-art { rotate: 1.2deg; }
-@media (min-width: 640px) { .family-card { padding: 2rem 1.75rem; } }
-.event-date {
+.doorway-art {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  border-radius: 999px 999px 0.9rem 0.9rem;
+  border: 5px solid var(--color-zari);
+  box-shadow: 0 0 0 7px rgba(226, 177, 60, 0.16), 0 30px 50px -28px #000;
+}
+@media (min-height: 760px) and (min-width: 768px) { .doorway { width: min(100%, 18.5rem); } }
+.doorway-art::after {
+  content: "";
   position: absolute;
-  left: -0.4rem;
-  top: -0.8rem;
+  inset: 7px;
+  border-radius: inherit;
+  border: 1.5px solid rgba(255, 248, 230, 0.75);
+  pointer-events: none;
+}
+.doorway-art img { transition: scale 0.7s ease; }
+.ceremony:hover .doorway-art img { scale: 1.06; }
+.doorway-date {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  translate: -50% 50%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 4.6rem;
-  height: 4.6rem;
+  gap: 0.15rem;
+  width: 3.6rem;
+  height: 3.6rem;
   border-radius: 999px;
   color: #fff;
   background: var(--accent);
-  box-shadow: 0 0 0 4px #fff, 0 10px 24px -10px rgba(42, 15, 18, 0.6);
+  box-shadow: 0 0 0 3px var(--color-zari), 0 0 0 6px #3d0b14;
 }
-@media (min-width: 640px) { .event-date { width: 5.6rem; height: 5.6rem; left: -1.2rem; top: -1.2rem; } }
+.door-link {
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  color: var(--color-marigold);
+  font-family: var(--font-body);
+  text-decoration: underline;
+  text-decoration-color: rgba(242, 162, 12, 0.45);
+  text-underline-offset: 4px;
+}
+.door-link:hover { color: var(--color-shola); text-decoration-color: var(--color-shola); }
+.pill-sm { padding: 0.35rem 0.9rem; font-size: 0.9rem; }
 .pill-btn {
   display: inline-flex;
   align-items: center;
@@ -365,6 +414,25 @@ body {
   background: linear-gradient(180deg, #2a0f12 0%, #3b1530 30%, #1a2b52 70%, #101b36 100%);
 }
 .haor-art { animation: drift-zoom 40s ease-in-out infinite alternate; }
+.wishes-card { background: #101b36; }
+.wishes-bg { position: absolute; left: 0; right: 0; top: -8vh; height: calc(100svh + 16vh); }
+.wishes-layout { position: relative; display: flex; flex-direction: column; min-height: 100svh; }
+.wishes-scene { position: relative; min-height: 100svh; }
+.wishes-form {
+  position: relative;
+  z-index: 2;
+  padding: 2rem 1rem 6rem;
+  background: linear-gradient(180deg, #101b36, #2a0f12);
+  scroll-snap-align: start;
+}
+@media (min-width: 768px) {
+  .wishes-bg { bottom: -8vh; height: auto; }
+  .wishes-layout { flex-direction: row; align-items: center; }
+  .wishes-scene { flex: 1; align-self: stretch; }
+  .wishes-form { width: 27rem; margin-right: 5vw; padding: 1.5rem 0; background: none; scroll-snap-align: none; }
+}
+.diya-lane { position: absolute; inset: 0; overflow: hidden; container-type: inline-size; pointer-events: none; }
+.diya-lane button { pointer-events: auto; }
 .haor-dusk {
   position: absolute;
   inset: 0;
@@ -431,12 +499,12 @@ body {
 .rsvp-card {
   position: relative;
   z-index: 3;
-  padding: 2rem 1.5rem;
+  padding: 1.6rem 1.4rem;
   border-radius: 1.5rem;
   background: var(--color-shola);
   box-shadow: 0 30px 70px -20px rgba(0, 0, 0, 0.6);
 }
-@media (min-width: 640px) { .rsvp-card { padding: 2.5rem; } }
+@media (min-width: 640px) { .rsvp-card { padding: 1.9rem 2.1rem; } }
 .field { display: flex; flex-direction: column; gap: 0.4rem; border: 0; padding: 0; }
 .field > span, .field > legend { font-weight: 500; margin-bottom: 0.2rem; }
 .field input:not([type="radio"]):not([type="checkbox"]),
@@ -521,7 +589,7 @@ body {
   to { transform: translate(var(--drift), 110vh) rotate(540deg); opacity: 0.8; }
 }
 @keyframes drift-zoom { from { transform: scale(1); } to { transform: scale(1.07) translateX(-1.5%); } }
-@keyframes drift { from { transform: translateX(-120px); } to { transform: translateX(calc(100vw + 40px)); } }
+@keyframes drift { from { transform: translateX(-120px); } to { transform: translateX(calc(100cqw + 40px)); } }
 @keyframes flicker { from { transform: scale(1, 1) rotate(-2deg); } to { transform: scale(0.92, 1.08) rotate(2deg); } }
 @keyframes glow { from { opacity: 0.12; } to { opacity: 0.3; } }
 @keyframes eq { 0%, 100% { height: 4px; } 50% { height: 16px; } }

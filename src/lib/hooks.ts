@@ -60,48 +60,83 @@ export function useNow(intervalMs = 1000) {
 
 /**
  * Mouse wheel / trackpad: one deliberate flick moves exactly one card or beat (`.card`, `.beat`).
- * Momentum events are swallowed until the gesture settles. Touch and keyboard keep native scroll snapping,
+ * Trackpads keep firing fading "momentum" events after the fingers lift. Those are ignored; a new flick is
+ * recognised by a pause in events or by the deltas growing again. Touch and keyboard keep native snapping,
  * and a card taller than the screen scrolls normally until its edge.
  */
 export function useCardWheel(enabled: boolean) {
   useEffect(() => {
     if (!enabled) return;
-    let lockUntil = 0;
-    let lastWheel = 0;
-    let acc = 0;
+    const COOLDOWN = 650;
+    let lastAt = 0;
+    let lastAbs = 0;
+    let peaked = true; // has the current swipe's speed started falling (momentum)?
+    let trough = Infinity; // slowest delta seen since then
+    let movedAt = -Infinity;
+    let queued: number | null = null;
+    let heading: number | null = null; // where the last move is scrolling to
 
     const snaps = () =>
       [...document.querySelectorAll<HTMLElement>(".card, .beat")]
         .map((el) => Math.round(el.getBoundingClientRect().top + window.scrollY))
         .sort((a, b) => a - b);
 
+    /** The next snap point in a direction, or null when the current card still has content to scroll through. */
+    const targetFor = (down: boolean) => {
+      // while a move is still gliding, count from its destination, not from wherever the page is mid-way
+      const y = heading !== null && performance.now() - movedAt < COOLDOWN + 300 ? heading : window.scrollY;
+      const vh = window.innerHeight;
+      const points = snaps();
+      const t = down ? points.find((p) => p > y + 2) : [...points].reverse().find((p) => p < y - 2);
+      if (t === undefined || (down ? t > y + vh + 2 : y - t > vh + 2)) return null;
+      return t;
+    };
+
+    const move = (down: boolean) => {
+      const t = targetFor(down);
+      if (t === null) return;
+      movedAt = performance.now();
+      heading = t;
+      peaked = false;
+      trough = Infinity;
+      window.scrollTo({ top: t, behavior: "smooth" });
+    };
+
     const onWheel = (e: WheelEvent) => {
       if (e.ctrlKey || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
       const now = performance.now();
-      const gap = now - lastWheel;
-      lastWheel = now;
-      if (now < lockUntil) {
-        e.preventDefault();
-        if (gap < 160) lockUntil = Math.max(lockUntil, now + 160); // still the same flick's momentum
-        return;
-      }
-      const y = window.scrollY;
-      const vh = window.innerHeight;
-      const points = snaps();
+      const abs = Math.abs(e.deltaY);
       const down = e.deltaY > 0;
-      const target = down ? points.find((t) => t > y + 2) : [...points].reverse().find((t) => t < y - 2);
-      if (target === undefined) return;
-      // there is more of the current card to see first: scroll natively
-      if (down ? target > y + vh + 2 : y - target > vh + 2) return;
+
+      let fresh: boolean;
+      if (now - lastAt > 220) {
+        fresh = true; // first event after a pause
+        peaked = true;
+        trough = abs;
+      } else {
+        if (!peaked && abs < lastAbs) peaked = true;
+        if (peaked) trough = Math.min(trough, abs);
+        fresh = peaked && abs > lastAbs && abs > trough * 2 + 6; // speeding up again: a new swipe over old momentum
+      }
+      lastAt = now;
+      lastAbs = abs;
+
+      if (targetFor(down) === null) return; // let the browser scroll inside a tall card
       e.preventDefault();
-      acc += e.deltaY;
-      if (Math.abs(acc) < 12) return;
-      acc = 0;
-      lockUntil = now + 750;
-      window.scrollTo({ top: target, behavior: "smooth" });
+      if (!fresh || abs < 2 || queued !== null) return; // a queued move already covers this swipe
+
+      const wait = movedAt + COOLDOWN - now;
+      if (wait <= 0) return move(down);
+      // the previous move is still animating: run this one as soon as it lands
+      if (queued === null) {
+        queued = window.setTimeout(() => { queued = null; move(down); }, wait);
+      }
     };
 
     window.addEventListener("wheel", onWheel, { passive: false });
-    return () => window.removeEventListener("wheel", onWheel);
+    return () => {
+      window.removeEventListener("wheel", onWheel);
+      if (queued !== null) clearTimeout(queued);
+    };
   }, [enabled]);
 }

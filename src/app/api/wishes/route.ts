@@ -1,17 +1,12 @@
 import { connection } from "next/server";
 import { redis } from "@/lib/redis";
-import { events } from "@/lib/wedding";
 
 export type Wish = {
   id: string;
   name: string;
-  side: "bride" | "groom" | "friend";
   message: string;
   ts: number;
 };
-
-const SIDES = ["bride", "groom", "friend"] as const;
-const EVENT_IDS = events.map((e) => e.id as string);
 
 const unavailable = () =>
   Response.json(
@@ -49,26 +44,23 @@ export async function POST(request: Request) {
 
   const name = String(body.name ?? "").trim().slice(0, 60);
   const message = String(body.message ?? "").trim().slice(0, 280);
-  const side = SIDES.includes(body.side as Wish["side"]) ? (body.side as Wish["side"]) : "friend";
   const attending = body.attending !== false;
   const guests = Math.min(10, Math.max(1, Number(body.guests) || 1));
-  const chosen = Array.isArray(body.events)
-    ? (body.events as unknown[]).map(String).filter((id) => EVENT_IDS.includes(id))
-    : [];
+  const excuse = String(body.excuse ?? "").trim().slice(0, 200);
 
   if (!name) return Response.json({ error: "Add your name so the families know who's coming." }, { status: 400 });
-  if (attending && chosen.length === 0) {
-    return Response.json({ error: "Pick at least one event you'll attend." }, { status: 400 });
+  if (!attending && !excuse) {
+    return Response.json({ error: "Every excuse is accepted, but we do need one." }, { status: 400 });
   }
 
   const id = crypto.randomUUID();
   const ts = Date.now();
 
-  await redis.lpush("rsvps", { id, name, side, attending, guests: attending ? guests : 0, events: attending ? chosen : [], message, ts });
+  await redis.lpush("rsvps", { id, name, attending, guests: attending ? guests : 0, excuse: attending ? "" : excuse, message, ts });
 
   let wish: Wish | null = null;
   if (message) {
-    wish = { id, name, side, message, ts };
+    wish = { id, name, message, ts };
     await redis.lpush("wishes", wish);
     await redis.ltrim("wishes", 0, 499);
   }
