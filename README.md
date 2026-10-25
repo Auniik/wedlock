@@ -1,4 +1,4 @@
-# Sumona & Anik — শুভ বিবাহ
+# শুভ বিবাহ - Invitation Card
 
 A scroll-driven wedding invitation: blow the shankh, ride the barjatri train from Mirpur to Netrokona,
 watch the Shubho Drishti, then RSVP and float a wish on the haor.
